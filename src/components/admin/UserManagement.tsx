@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from 'react';
-import { adminApi } from '@/lib/admin-api';
-import { User } from '@/lib/models';
+import { adminApi } from '@/lib/admin-api'; // Assuming adminApi contains the functions for updating the user data
+import { User } from '@/lib/models'; // Assuming User is your data model
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -27,62 +26,64 @@ import {
   UserCheck,
   ClipboardList,
 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 const UserManagement = () => {
-  const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'all' | 'homeowner' | 'provider'>('all');
+  
+  // Get user details from the Auth context (real data)
+  const { getUserdetails, homeownerdetails, providerdetails, allusers } = useAuth();
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    // Load user details when the component mounts
+    const loadData = async () => {
       try {
-        const data = await adminApi.getUsers();
-        setUsers(data);
-        setFilteredUsers(data);
+        await getUserdetails(); // Fetch data from backend
+        setLoading(false); // Set loading to false after data is fetched
       } catch (error) {
-        console.error('Error fetching users:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load users. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
+        console.error('Error loading user data:', error);
         setLoading(false);
       }
     };
-
-    fetchUsers();
-  }, []);
+    
+    loadData();
+  }, [getUserdetails]);
 
   useEffect(() => {
-    let result = users;
-    
-    // Filter by role
-    if (activeFilter !== 'all') {
-      result = result.filter(user => user.role === activeFilter);
+    let result: User[] = [];
+
+    // Switch data based on active tab filter
+    if (activeFilter === 'all') {
+      result = allusers || [];
+    } else if (activeFilter === 'homeowner') {
+      result = homeownerdetails || [];
+    } else if (activeFilter === 'provider') {
+      result = providerdetails || [];
     }
-    
-    // Filter by search term
+
+    // Apply search filter
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       result = result.filter(
         user => 
-          user.name.toLowerCase().includes(term) || 
-          user.email.toLowerCase().includes(term)
+          user?.name?.toLowerCase().includes(term) || 
+          user?.email?.toLowerCase().includes(term)
       );
     }
-    
+
     setFilteredUsers(result);
-  }, [users, searchTerm, activeFilter]);
+  }, [searchTerm, activeFilter, allusers, homeownerdetails, providerdetails]);
 
   const handleStatusUpdate = async (userId: string, status: User['status']) => {
     try {
       const updatedUser = await adminApi.updateUserStatus(userId, status);
-      setUsers(users.map(user => user.id === userId ? updatedUser : user));
+      // Update the user in the corresponding array (this could be improved with a more centralized state management)
+      setFilteredUsers(filteredUsers.map(user => user.id === userId ? updatedUser : user));
       
       const statusMap: Record<User['status'], string> = {
         'active': 'activated',
@@ -238,85 +239,44 @@ const UserManagement = () => {
             
             <div className="space-y-4 py-4">
               <div className="flex justify-between items-center">
-                <h3 className="font-medium">{selectedUser.name}</h3>
-                {getStatusBadge(selectedUser.status)}
+                <h3 className="text-lg font-semibold">{selectedUser.name}</h3>
+                <div>{getRoleBadge(selectedUser.role)}</div>
               </div>
-              
-              <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <Mail className="mt-0.5 text-doit-400" size={16} />
-                  <div>
-                    <p className="font-medium">Email</p>
-                    <p className="text-sm text-muted-foreground">{selectedUser.email}</p>
-                  </div>
+              <div className="text-sm">Email: {selectedUser.email}</div>
+              <div className="flex justify-between">
+                <div className="flex items-center gap-2">
+                  <Calendar size={16} /> 
+                  {selectedUser.createdAt}
                 </div>
-                
-                <div className="flex items-start gap-3">
-                  <UserCheck className="mt-0.5 text-doit-400" size={16} />
-                  <div>
-                    <p className="font-medium">Role</p>
-                    <p className="text-sm">{getRoleBadge(selectedUser.role)}</p>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <Mail size={16} />
+                  {selectedUser.email}
                 </div>
-                
-                <div className="flex items-start gap-3">
-                  <Calendar className="mt-0.5 text-doit-400" size={16} />
-                  <div>
-                    <p className="font-medium">Joined</p>
-                    <p className="text-sm text-muted-foreground">{selectedUser.createdAt}</p>
-                  </div>
-                </div>
-                
-                {selectedUser.services && selectedUser.services.length > 0 && (
-                  <div className="flex items-start gap-3">
-                    <ClipboardList className="mt-0.5 text-doit-400" size={16} />
-                    <div>
-                      <p className="font-medium">Services</p>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {selectedUser.services.map((service, index) => (
-                          <Badge key={index} variant="outline">{service}</Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
-            
-            <DialogFooter className="flex-col sm:flex-row gap-2">
-              {selectedUser.role !== 'admin' && (
-                <>
-                  {selectedUser.status !== 'active' && (
-                    <Button 
-                      onClick={() => handleStatusUpdate(selectedUser.id, 'active')}
-                      className="bg-green-500 hover:bg-green-600"
-                    >
-                      <CheckCircle size={16} className="mr-2" />
-                      Activate
-                    </Button>
-                  )}
-                  
-                  {selectedUser.status !== 'inactive' && (
-                    <Button 
-                      onClick={() => handleStatusUpdate(selectedUser.id, 'inactive')}
-                      className="bg-yellow-500 hover:bg-yellow-600"
-                    >
-                      <AlertTriangle size={16} className="mr-2" />
-                      Deactivate
-                    </Button>
-                  )}
-                  
-                  {selectedUser.status !== 'suspended' && (
-                    <Button 
-                      onClick={() => handleStatusUpdate(selectedUser.id, 'suspended')}
-                      className="bg-red-500 hover:bg-red-600"
-                    >
-                      <XCircle size={16} className="mr-2" />
-                      Suspend
-                    </Button>
-                  )}
-                </>
-              )}
+
+            <DialogFooter>
+              <Button 
+                variant="default" 
+                size="sm" 
+                onClick={() => handleStatusUpdate(selectedUser.id, 'active')}
+              >
+                Activate
+              </Button>
+              <Button 
+                variant="destructive" 
+                size="sm" 
+                onClick={() => handleStatusUpdate(selectedUser.id, 'suspended')}
+              >
+                Suspend
+              </Button>
+              <Button 
+                variant="secondary" 
+                size="sm" 
+                onClick={() => setIsDialogOpen(false)}
+              >
+                Close
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { adminApi } from '@/lib/admin-api';
 import { Booking } from '@/lib/models';
@@ -33,22 +32,23 @@ import {
   ClipboardList,
   Filter,
 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 const BookingManagement = () => {
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
+  const [filteredBookings, setFilteredBookings] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [loading, setLoading] = useState(true);
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const { getTotalBookings, BookingsDetails } = useAuth();
 
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const data = await adminApi.getBookings();
-        setBookings(data);
-        setFilteredBookings(data);
+        await getTotalBookings();
+        setLoading(false);
       } catch (error) {
         console.error('Error fetching bookings:', error);
         toast({
@@ -56,16 +56,15 @@ const BookingManagement = () => {
           description: "Failed to load bookings. Please try again.",
           variant: "destructive",
         });
-      } finally {
         setLoading(false);
       }
     };
 
     fetchBookings();
-  }, []);
+  }, [getTotalBookings]);
 
   useEffect(() => {
-    let result = bookings;
+    let result = BookingsDetails || [];
     
     // Filter by status
     if (statusFilter !== 'all') {
@@ -77,21 +76,23 @@ const BookingManagement = () => {
       const term = searchTerm.toLowerCase();
       result = result.filter(
         booking => 
-          booking.service.toLowerCase().includes(term) || 
-          booking.customer.name.toLowerCase().includes(term) ||
-          booking.address.toLowerCase().includes(term)
+          (booking.service && booking.service.toLowerCase().includes(term)) || 
+          (booking.homeownername && booking.homeownername.toLowerCase().includes(term)) ||
+          (booking.address && booking.address.toLowerCase().includes(term))
       );
     }
     
     setFilteredBookings(result);
-  }, [bookings, searchTerm, statusFilter]);
+  }, [BookingsDetails, searchTerm, statusFilter]);
 
-  const handleStatusUpdate = async (bookingId: string, status: Booking['status']) => {
+  const handleStatusUpdate = async (bookingId, status) => {
     try {
       const updatedBooking = await adminApi.updateBookingStatus(bookingId, status);
-      setBookings(bookings.map(booking => booking.id === bookingId ? updatedBooking : booking));
       
-      const statusMap: Record<Booking['status'], string> = {
+      // Refresh bookings after update
+      await getTotalBookings();
+      
+      const statusMap = {
         'pending': 'marked as pending',
         'confirmed': 'confirmed',
         'completed': 'marked as completed',
@@ -114,7 +115,7 @@ const BookingManagement = () => {
     }
   };
 
-  const getStatusBadge = (status: Booking['status']) => {
+  const getStatusBadge = (status) => {
     switch (status) {
       case 'pending':
         return <Badge className="bg-yellow-500 hover:bg-yellow-600">Pending</Badge>;
@@ -199,7 +200,7 @@ const BookingManagement = () => {
                     }}
                   >
                     <td className="p-4 align-middle">{booking.service}</td>
-                    <td className="p-4 align-middle">{booking.customer.name}</td>
+                    <td className="p-4 align-middle">{booking.homeownername}</td>
                     <td className="p-4 align-middle">{booking.date} at {booking.time}</td>
                     <td className="p-4 align-middle">{getStatusBadge(booking.status)}</td>
                     <td className="p-4 align-middle">
@@ -245,18 +246,18 @@ const BookingManagement = () => {
                   <User className="mt-0.5 text-doit-400" size={16} />
                   <div>
                     <p className="font-medium">Customer</p>
-                    <p className="text-sm">{selectedBooking.customer.name}</p>
-                    <p className="text-sm text-muted-foreground">{selectedBooking.customer.email}</p>
-                    <p className="text-sm text-muted-foreground">{selectedBooking.customer.phone}</p>
+                    <p className="text-sm">{selectedBooking.homeownername}</p>
+                    <p className="text-sm text-muted-foreground">{selectedBooking.email}</p>
+                    <p className="text-sm text-muted-foreground">{selectedBooking.phone}</p>
                   </div>
                 </div>
                 
-                {selectedBooking.provider && (
+                {selectedBooking.providername && (
                   <div className="flex items-start gap-3">
                     <UserCog className="mt-0.5 text-doit-400" size={16} />
                     <div>
                       <p className="font-medium">Provider</p>
-                      <p className="text-sm">{selectedBooking.provider.name}</p>
+                      <p className="text-sm">{selectedBooking.providername}</p>
                     </div>
                   </div>
                 )}
@@ -300,7 +301,7 @@ const BookingManagement = () => {
             <DialogFooter className="flex-col sm:flex-row-reverse gap-2">
               <Select 
                 defaultValue={selectedBooking.status}
-                onValueChange={(value) => handleStatusUpdate(selectedBooking.id, value as Booking['status'])}
+                onValueChange={(value) => handleStatusUpdate(selectedBooking.id, value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Update Status" />

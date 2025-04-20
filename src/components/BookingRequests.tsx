@@ -42,7 +42,7 @@ interface Booking {
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const BookingRequests = () => {
-  const { fetchBookings,fetchProviderBookings, user } = useAuth();
+  const {fetchProviderBookings, user } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

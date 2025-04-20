@@ -60,6 +60,8 @@ const BookingForm = () => {
       // Prepare booking data
       const bookingData = {
         userId: user?.userid,  
+        useremail: user?.email,
+        userMobile: user?.mobnumber,
         homeownername: user?.name,
         serviceType: selectedService,
         date: format(date, "yyyy-MM-dd"),

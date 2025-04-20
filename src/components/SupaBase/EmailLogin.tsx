@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from './supabaseClient';
 import axios from 'axios';
 import { useLocation } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 export default function EmailLogin() {
   const [email, setEmail] = useState('');
   const [flashMessage, setFlashMessage] = useState('');
@@ -19,36 +20,52 @@ export default function EmailLogin() {
     }, 3000); // Auto-hide after 3 seconds
   };
 
-  const handleLogin = async () => {
-    if (!email) {
-      showFlashMessage('Please enter an email address!', 'error');
-      return;
+  const {user}=useAuth()
+  console.log(user)
+// In EmailLogin.js
+const handleLogin = async () => {
+  if (!email) {
+    showFlashMessage('Please enter an email address!', 'error');
+    return;
+  }
+
+  try {
+    // Check if user exists
+    const response = await axios.post(`${API_BASE_URL}/api/auth/getemailotp`, {
+      email,
+      role
+      // role:user.role,
+      // name:user.name
+    });
+
+    const userRole = response.data.role;
+
+    // Determine the redirect URL based on role
+    const redirectUrl =
+      userRole === 'provider'
+        ? 'http://localhost:8080/Dashboard'
+        : 'http://localhost:8080/Dashboard';
+
+    // Send OTP via Supabase
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: redirectUrl,
+      },
+    });
+
+    if (error) {
+      showFlashMessage(error.message, 'error');
+    } else {
+      showFlashMessage('OTP sent to your email!', 'success');
     }
+  } catch (error) {
+    const message =
+      error.response?.data?.message || error.message || 'Something went wrong';
+    showFlashMessage(message, 'error');
+  }
+};
 
-    try {
-      // Step 1: Verify user existence from backend
-      const response = await axios.post(`${API_BASE_URL}/api/auth/getemailotp`, { email,role});
-
-      // Step 2: Proceed to send OTP via Supabase
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: 'http://localhost:8080/signup',
-        },
-      });
-
-      if (error) {
-        showFlashMessage(error.message, 'error');
-      } else {
-        showFlashMessage('OTP sent to your email!', 'success');
-      }
-
-    } catch (error) {
-      const message =
-        error.response?.data?.message || error.message || 'Something went wrong';
-      showFlashMessage(message, 'error');
-    }
-  };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-100 to-white">

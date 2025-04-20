@@ -36,11 +36,13 @@ const Analytics = () => {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const {GetData,userCounts}=useAuth()
+  const {GetUserCounts,userCounts, getTotalBookings,Bookings,completedBookings,pendingBookings}=useAuth()
 
 
   useEffect(()=>{
-    GetData()
+    GetUserCounts()
+    getTotalBookings()
+   
   },[])
 
 
@@ -117,7 +119,7 @@ const Analytics = () => {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{0}</div>
+            <div className="text-2xl font-bold">{Bookings}</div>
             <p className="text-xs text-muted-foreground">
               Service bookings made
             </p>
@@ -130,7 +132,7 @@ const Analytics = () => {
             <CheckSquare className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{0}</div>
+            <div className="text-2xl font-bold">{completedBookings}</div>
             <p className="text-xs text-muted-foreground">
               Successfully completed bookings
             </p>
@@ -208,7 +210,7 @@ const Analytics = () => {
         <CardContent>
           <div className="flex items-center space-x-2">
             <HourglassIcon className="h-5 w-5 text-yellow-500" />
-            <span className="text-lg font-medium">{analyticsData.pendingBookings}</span>
+            <span className="text-lg font-medium">{pendingBookings}</span>
             <span className="text-muted-foreground text-sm">awaiting provider confirmation</span>
           </div>
         </CardContent>

@@ -4,24 +4,24 @@ import { Input } from '@/components/ui/input';
 import ServiceCard from '@/components/ServiceCard';
 
 const AVAILABLE_SERVICES = [
-  { title: 'Plumbing Services', description: 'Fix leaks, installations, and repairs', icon: Wrench },
-  { title: 'Electrical Services', description: 'Wiring, fixtures, and electrical repairs', icon: Lightbulb },
-  { title: 'Carpentry Services', description: 'Furniture repair and custom woodwork', icon: Hammer },
-  { title: 'Home Appliance Repair', description: 'Fix appliances and household equipment', icon: Home },
-  { title: 'Painting Services', description: 'Interior and exterior painting', icon: Paintbrush },
-  { title: 'Pest Control', description: 'Removal and prevention of pests', icon: Bug },
-  { title: 'Gardening & Landscaping', description: 'Garden maintenance and design', icon: Flower2 },
-  { title: 'Home Renovation', description: 'Major and minor home renovations', icon: FileText },
-  { title: 'AC & HVAC Services', description: 'Installation and repair of climate systems', icon: Thermometer },
-  { title: 'Home Security', description: 'Security system installation and monitoring', icon: Shield },
-  { title: 'Laundry Services', description: 'Washing, dry cleaning, and ironing', icon: ShowerHead },
-  { title: 'Moving & Relocation', description: 'Packing, moving, and setup services', icon: Truck },
-  { title: 'Wellness & Lifestyle', description: 'In-home fitness, nutrition, and wellness', icon: Heart },
-  { title: 'Vehicle Services', description: 'Car maintenance and repair at home', icon: Car },
-  { title: 'Smart Home', description: 'Smart device installation and setup', icon: Cpu },
-  { title: 'Event Support', description: 'Party planning and event services', icon: CalendarDays },
-  { title: 'Handyman Services', description: 'General repairs and maintenance', icon: Wrench },
-  { title: 'IT & Technical Support', description: 'Computer and tech support at home', icon: Monitor }
+  { title: 'Plumbing Services', description: 'Fix leaks, installations, and repairs', icon: Wrench, price: '$50/hr' },
+  { title: 'Electrical Services', description: 'Wiring, fixtures, and electrical repairs', icon: Lightbulb, price: '$60/hr' },
+  { title: 'Carpentry Services', description: 'Furniture repair and custom woodwork', icon: Hammer, price: '$55/hr' },
+  { title: 'Home Appliance Repair', description: 'Fix appliances and household equipment', icon: Home, price: '$45/hr' },
+  { title: 'Painting Services', description: 'Interior and exterior painting', icon: Paintbrush, price: '$40/hr' },
+  { title: 'Pest Control', description: 'Removal and prevention of pests', icon: Bug, price: '$65/service' },
+  { title: 'Gardening & Landscaping', description: 'Garden maintenance and design', icon: Flower2, price: '$35/hr' },
+  { title: 'Home Renovation', description: 'Major and minor home renovations', icon: FileText, price: '$75/hr' },
+  { title: 'AC & HVAC Services', description: 'Installation and repair of climate systems', icon: Thermometer, price: '$70/hr' },
+  { title: 'Home Security', description: 'Security system installation and monitoring', icon: Shield, price: '$80/service' },
+  { title: 'Laundry Services', description: 'Washing, dry cleaning, and ironing', icon: ShowerHead, price: '$25/load' },
+  { title: 'Moving & Relocation', description: 'Packing, moving, and setup services', icon: Truck, price: '$90/hr' },
+  { title: 'Wellness & Lifestyle', description: 'In-home fitness, nutrition, and wellness', icon: Heart, price: '$45/session' },
+  { title: 'Vehicle Services', description: 'Car maintenance and repair at home', icon: Car, price: '$65/hr' },
+  { title: 'Smart Home', description: 'Smart device installation and setup', icon: Cpu, price: '$55/device' },
+  { title: 'Event Support', description: 'Party planning and event services', icon: CalendarDays, price: '$100/event' },
+  { title: 'Handyman Services', description: 'General repairs and maintenance', icon: Wrench, price: '$40/hr' },
+  { title: 'IT & Technical Support', description: 'Computer and tech support at home', icon: Monitor, price: '$50/hr' }
 ];
 
 const ServiceBrowser = () => {
@@ -55,6 +55,7 @@ const ServiceBrowser = () => {
               title={service.title}
               description={service.description}
               icon={service.icon}
+              price={service.price}
             />
           ))}
         </div>

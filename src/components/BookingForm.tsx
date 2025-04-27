@@ -45,6 +45,28 @@ const AVAILABLE_SERVICES = [
   "IT & Technical Support",
 ];
 
+// Service price mapping
+const SERVICE_PRICES = {
+  'Plumbing Services': 75,
+  'Electrical Services': 85,
+  'Carpentry Services': 80,
+  'Home Appliance Repair': 70,
+  'Painting Services': 90,
+  'Pest Control': 65,
+  'Gardening & Landscaping': 60,
+  'Home Renovation': 150,
+  'AC & HVAC Services': 100,
+  'Home Security': 120,
+  'Laundry Services': 50,
+  'Moving & Relocation': 200,
+  'Wellness & Lifestyle': 75,
+  'Vehicle Services': 90,
+  'Smart Home': 110,
+  'Event Support': 150,
+  'Handyman Services': 65,
+  'IT & Technical Support': 80
+};
+
 const TIME_SLOTS = [
   "09:00 AM",
   "10:00 AM",
@@ -85,12 +107,33 @@ const BookingForm = () => {
     setDetails,
   } = useAuth();
 
+<<<<<<< HEAD
   useEffect(() => {
     if (servicesList.length === 0) {
       getServicePrice();
+=======
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+  const handleServiceChange = (value: string) => {
+    setSelectedService(value);
+    setServicePrice(SERVICE_PRICES[value as keyof typeof SERVICE_PRICES]);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!selectedService || !date || !timeSlot || !address) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+>>>>>>> 5f7a9b8c1575864b5a86768e3659edefe644b0c5
     }
   }, []);
 
+<<<<<<< HEAD
   useEffect(() => {
     if (selectedService && servicesList.length > 0) {
       const match = servicesList.find(
@@ -101,6 +144,61 @@ const BookingForm = () => {
       } else {
         setPrice("");
       }
+=======
+    setLoading(true);
+
+    console.log(user)
+    try {
+      // Prepare booking data
+      const bookingData = {
+        userId: user?.userid,  
+        useremail: user?.email,
+        userMobile: user?.mobnumber,
+        homeownername: user?.name,
+        serviceType: selectedService,
+        servicePrice: servicePrice,
+        date: format(date, "yyyy-MM-dd"),
+        time: timeSlot,
+        serviceAddress: address,
+        additionalDetails: details || "",
+        status: "" // Assuming this will be managed later
+      };
+      
+
+      // Send POST request to backend
+      const response = await axios.post(`${API_BASE_URL}/api/bookings/createBooking`, bookingData, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      console.log(response);
+      
+      // Handle successful response
+      toast({
+        title: "Booking successful!",
+        description: `Your ${selectedService} appointment has been scheduled for ${format(date, "PPP")} at ${timeSlot}.`,
+      });
+
+      // Reset form
+      setSelectedService('');
+      setServicePrice(null);
+      setDate(undefined);
+      setTimeSlot('');
+      setAddress('');
+      setDetails('');
+    } catch (error) {
+      // Handle error
+      console.error('Booking request failed:', error);
+      
+      toast({
+        title: "Booking failed",
+        description: "There was an error processing your booking. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+>>>>>>> 5f7a9b8c1575864b5a86768e3659edefe644b0c5
     }
   }, [selectedService, servicesList]);
 
@@ -127,7 +225,7 @@ const BookingForm = () => {
         <div className="space-y-4">
           <div>
             <Label htmlFor="service">Service Type*</Label>
-            <Select value={selectedService} onValueChange={setSelectedService}>
+            <Select value={selectedService} onValueChange={handleServiceChange}>
               <SelectTrigger id="service" className="w-full">
                 <SelectValue placeholder="Select a service" />
               </SelectTrigger>
@@ -145,6 +243,13 @@ const BookingForm = () => {
               </p>
             )}
           </div>
+          
+          {servicePrice !== null && (
+            <div className="bg-muted p-3 rounded-md">
+              <Label>Fixed Price</Label>
+              <p className="text-lg font-semibold">${servicePrice.toFixed(2)}</p>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

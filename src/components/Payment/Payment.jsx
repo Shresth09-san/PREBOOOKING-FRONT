@@ -175,124 +175,157 @@ const Payment = () => {
   }
 
   return (
-    <div className="max-w-lg mx-auto bg-white rounded-lg shadow-lg p-8 my-8">
-      <h2 className="text-3xl font-bold text-center mb-8 text-black">
-        Complete Your Purchase
-      </h2>
+    <div className="relative min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 pt-24">
+      {/* Floating Card Container */}
+      <div className="absolute left-1/2 top-28 transform -translate-x-1/2 z-10 w-full max-w-2xl">
+        <div className="bg-white/90 rounded-3xl shadow-2xl border-4 border-blue-300/40 p-0 overflow-hidden hover:shadow-3xl transition-all duration-300">
+          <div className="relative">
+            {/* Accent Stripe */}
+            <div className="absolute left-0 top-0 h-full w-2 bg-gradient-to-b from-blue-400 via-indigo-400 to-blue-200 rounded-l-3xl" />
+            <div className="pl-8 pr-8 py-10">
+              <h2 className="text-4xl font-extrabold text-center mb-10 text-blue-900 tracking-tight drop-shadow">
+                Checkout
+              </h2>
 
-      {/* Order Summary */}
-      <div className="mb-8 bg-gray-50 p-6 rounded-lg">
-        <h3 className="text-xl font-semibold mb-4 text-black">Order Summary</h3>
-        <div className="border-b border-gray-200 pb-4">
-          {cart.map((item, index) => (
-            <div key={index} className="flex justify-between mb-2">
-              <span className="text-black">{item.name}</span>
-              <span className="font-medium text-black">
-                ${parseFloat(item.price).toFixed(2)}
-              </span>
+              {/* Order Summary */}
+              <div className="mb-10 bg-white/80 p-8 rounded-2xl shadow flex flex-col gap-4 border border-blue-100">
+                <h3 className="text-2xl font-bold mb-2 text-blue-800 flex items-center gap-2">
+                  <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7h18M3 12h18M3 17h18" /></svg>
+                  Order Summary
+                </h3>
+                <div className="divide-y divide-blue-100">
+                  {cart.map((item, index) => (
+                    <div key={index} className="flex justify-between py-2">
+                      <span className="text-blue-900 font-medium">{item.name}</span>
+                      <span className="font-semibold text-blue-700">
+                        ${parseFloat(item.price).toFixed(2)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex justify-between font-bold mt-4 text-xl text-blue-900">
+                  <span>Total:</span>
+                  <span>${totalPrice} <span className="text-base font-normal text-blue-500">USD</span></span>
+                </div>
+              </div>
+
+              {/* Payment Method Selection */}
+              <div className="mb-10">
+                <h3 className="text-2xl font-bold mb-4 text-blue-800 flex items-center gap-2">
+                  <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3" /><circle cx="12" cy="12" r="10" /></svg>
+                  Payment Method
+                </h3>
+                <div className="flex gap-6">
+                  <button
+                    className={`flex-1 py-4 px-6 rounded-xl text-center font-semibold transition-all duration-200 border-2 ${
+                      paymentMethod === "paypal"
+                        ? "bg-blue-600 text-white border-blue-600 shadow-lg scale-105"
+                        : "bg-white text-blue-700 border-blue-200 hover:bg-blue-50"
+                    }`}
+                    onClick={() => setPaymentMethod("paypal")}
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      <img src="https://www.paypalobjects.com/webstatic/icon/pp258.png" alt="PayPal" className="w-6 h-6" />
+                      PayPal
+                    </span>
+                  </button>
+                  <button
+                    className={`flex-1 py-4 px-6 rounded-xl text-center font-semibold transition-all duration-200 border-2 ${
+                      paymentMethod === "stripe"
+                        ? "bg-indigo-600 text-white border-indigo-600 shadow-lg scale-105"
+                        : "bg-white text-indigo-700 border-indigo-200 hover:bg-indigo-50"
+                    }`}
+                    onClick={handleClick}
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      <img src="https://cdn-icons-png.flaticon.com/512/196/196566.png" alt="Card" className="w-6 h-6" />
+                      Credit Card
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Payment Buttons */}
+              <div className="mt-8">
+                {paymentMethod === "paypal" ? (
+                  <div className="paypal-button-container rounded-xl overflow-hidden shadow">
+                    <PayPalScriptProvider
+                      options={{ clientId: clientID, currency: "USD" }}
+                    >
+                      <PayPalButtons
+                        createOrder={createOrder}
+                        onApprove={onApprove}
+                        style={{
+                          layout: "vertical",
+                          color: "blue",
+                          shape: "pill",
+                          label: "pay",
+                          tagline: false,
+                          height: 48,
+                        }}
+                        fundingSource={undefined}
+                        forceReRender={[clientID]}
+                      />
+                    </PayPalScriptProvider>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-4">
+                    <button
+                      className="w-full bg-gradient-to-r from-indigo-500 to-blue-500 text-white py-4 px-6 rounded-xl font-bold text-lg hover:from-indigo-600 hover:to-blue-600 transition-all shadow-lg disabled:bg-indigo-300 disabled:cursor-not-allowed"
+                      onClick={handleClick}
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+                          Redirecting to Stripe...
+                        </span>
+                      ) : (
+                        <span className="flex items-center justify-center gap-2">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="2" /><path d="M2 10h20" /></svg>
+                          Pay with Credit Card
+                        </span>
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Secure Payment Message */}
+              <div className="mt-10 text-center text-base text-blue-700">
+                <p className="flex items-center justify-center gap-2">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 text-green-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    />
+                  </svg>
+                  Secure payment processed through <span className="font-semibold">PayPal</span> or <span className="font-semibold">Stripe</span>
+                </p>
+                <p className="mt-2 text-blue-500">
+                  Your information is protected using industry-standard encryption.
+                </p>
+              </div>
+
+              {/* Error Display */}
+              {error && (
+                <div className="mt-8 p-5 bg-red-100 text-red-800 rounded-xl border border-red-300 shadow">
+                  <p className="font-bold text-lg mb-1">Error</p>
+                  <p>{error}</p>
+                </div>
+              )}
             </div>
-          ))}
-        </div>
-        <div className="flex justify-between font-bold mt-4 text-lg text-black">
-          <span>Total:</span>
-          <span>${totalPrice} USD</span>
-        </div>
-      </div>
-
-      {/* Payment Method Selection */}
-      <div className="mb-8">
-        <h3 className="text-xl font-semibold mb-4 text-black">
-          Select Payment Method
-        </h3>
-        <div className="flex gap-4">
-          <button
-            className={`flex-1 py-3 px-4 rounded-lg text-center font-medium transition-colors ${
-              paymentMethod === "paypal"
-                ? "bg-blue-600 text-white shadow-md"
-                : "bg-gray-100 text-black hover:bg-gray-200"
-            }`}
-            onClick={() => setPaymentMethod("paypal")}
-          >
-            PayPal
-          </button>
-          <button
-            className={`flex-1 py-3 px-4 rounded-lg text-center font-medium transition-colors ${
-              paymentMethod === "stripe"
-                ? "bg-blue-600 text-white shadow-md"
-                : "bg-gray-100 text-black hover:bg-gray-200"
-            }`}
-            onClick={handleClick}
-          >
-            Credit Card
-          </button>
-        </div>
-      </div>
-
-      {/* Payment Buttons */}
-      <div className="mt-6">
-        {paymentMethod === "paypal" ? (
-          <div className="paypal-button-container">
-            <PayPalScriptProvider
-              options={{ clientId: clientID, currency: "USD" }}
-            >
-              <PayPalButtons
-                createOrder={createOrder}
-                onApprove={onApprove}
-                style={{
-                  layout: "vertical",
-                  color: "blue",
-                  shape: "rect",
-                  label: "pay",
-                }}
-                fundingSource={undefined}
-                forceReRender={[clientID]}
-              />
-            </PayPalScriptProvider>
           </div>
-        ) : (
-          <div className="flex flex-col gap-4">
-            <button
-              className="w-full bg-indigo-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-indigo-700 transition-colors shadow-md disabled:bg-indigo-300 disabled:cursor-not-allowed"
-              onClick={handleClick}
-              disabled={loading}
-            >
-              {loading ? "Redirecting to Stripe..." : "Pay with Credit Card"}
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Secure Payment Message */}
-      <div className="mt-8 text-center text-sm text-black">
-        <p className="flex items-center justify-center">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4 mr-1"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-            />
-          </svg>
-          Secure payment processed through PayPal or Stripe
-        </p>
-        <p className="mt-2">
-          Your information is protected using industry-standard encryption
-        </p>
-      </div>
-
-      {/* Error Display */}
-      {error && (
-        <div className="mt-6 p-4 bg-red-50 text-red-700 rounded-lg border border-red-200">
-          <p className="font-medium">Error</p>
-          <p>{error}</p>
         </div>
-      )}
+      </div>
     </div>
   );
 };

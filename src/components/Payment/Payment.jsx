@@ -47,7 +47,7 @@ const Payment = () => {
   // PayPal integration
   const createOrder = async () => {
     try {
-      const response = await axios.post("http://localhost:5000/api/orders", {
+      const response = await axios.post(`${API_BASE_URL}/api/orders`, {
         cart,
       });
       const orderData = response.data;
@@ -67,7 +67,7 @@ const Payment = () => {
     try {
       // Notify backend to capture payment
       await axios.post(
-        `http://localhost:5000/api/orders/${data.orderID}/capture`
+        `${API_BASE_URL}/api/orders/${data.orderID}/capture`
       );
 
       // After successful payment, create the booking

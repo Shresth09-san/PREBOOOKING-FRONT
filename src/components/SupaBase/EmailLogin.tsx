@@ -43,8 +43,8 @@ const handleLogin = async () => {
     // Determine the redirect URL based on role
     const redirectUrl =
       userRole === 'provider'
-        ? 'http://localhost:8080/Dashboard'
-        : 'http://localhost:8080/Dashboard';
+        ? `${API_BASE_URL}/Dashboard`
+        : `${API_BASE_URL}/Dashboard`;
 
     // Send OTP via Supabase
     const { error } = await supabase.auth.signInWithOtp({

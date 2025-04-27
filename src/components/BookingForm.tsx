@@ -107,33 +107,12 @@ const BookingForm = () => {
     setDetails,
   } = useAuth();
 
-<<<<<<< HEAD
   useEffect(() => {
     if (servicesList.length === 0) {
       getServicePrice();
-=======
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-  const handleServiceChange = (value: string) => {
-    setSelectedService(value);
-    setServicePrice(SERVICE_PRICES[value as keyof typeof SERVICE_PRICES]);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!selectedService || !date || !timeSlot || !address) {
-      toast({
-        title: "Missing information",
-        description: "Please fill in all required fields",
-        variant: "destructive"
-      });
-      return;
->>>>>>> 5f7a9b8c1575864b5a86768e3659edefe644b0c5
     }
   }, []);
 
-<<<<<<< HEAD
   useEffect(() => {
     if (selectedService && servicesList.length > 0) {
       const match = servicesList.find(
@@ -144,61 +123,6 @@ const BookingForm = () => {
       } else {
         setPrice("");
       }
-=======
-    setLoading(true);
-
-    console.log(user)
-    try {
-      // Prepare booking data
-      const bookingData = {
-        userId: user?.userid,  
-        useremail: user?.email,
-        userMobile: user?.mobnumber,
-        homeownername: user?.name,
-        serviceType: selectedService,
-        servicePrice: servicePrice,
-        date: format(date, "yyyy-MM-dd"),
-        time: timeSlot,
-        serviceAddress: address,
-        additionalDetails: details || "",
-        status: "" // Assuming this will be managed later
-      };
-      
-
-      // Send POST request to backend
-      const response = await axios.post(`${API_BASE_URL}/api/bookings/createBooking`, bookingData, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-
-      console.log(response);
-      
-      // Handle successful response
-      toast({
-        title: "Booking successful!",
-        description: `Your ${selectedService} appointment has been scheduled for ${format(date, "PPP")} at ${timeSlot}.`,
-      });
-
-      // Reset form
-      setSelectedService('');
-      setServicePrice(null);
-      setDate(undefined);
-      setTimeSlot('');
-      setAddress('');
-      setDetails('');
-    } catch (error) {
-      // Handle error
-      console.error('Booking request failed:', error);
-      
-      toast({
-        title: "Booking failed",
-        description: "There was an error processing your booking. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
->>>>>>> 5f7a9b8c1575864b5a86768e3659edefe644b0c5
     }
   }, [selectedService, servicesList]);
 

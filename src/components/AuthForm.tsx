@@ -6,7 +6,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-
+import axios from "axios";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 interface AuthFormProps {
@@ -34,35 +34,44 @@ const AuthForm = ({ mode, role }: AuthFormProps) => {
     }
   }, [UseEmailLogin, navigate, userrole]);
 
+ 
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setIsSubmitting(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/${mode}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(
-          mode === "login"
-            ? { password, mobnumber, role: selectedRole }
-            : { name, email, password, mobnumber, role: selectedRole }
-        ),
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Authentication failed.");
+      const response = await axios.post(
+        `${API_BASE_URL}/api/auth/${mode}`,
+        mode === "login"
+          ? { password, mobnumber, role: selectedRole }
+          : { name, email, password, mobnumber, role: selectedRole },
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true, // for cookies (if you're using them)
+        }
+      );
+  
+      const data = response.data;
       if (!data || !data.token || !data.user) throw new Error("Invalid response from server.");
-
+  
       localStorage.setItem("doit-token", data.token);
       setUser(data.user);
       navigate(data.user.role === "admin" ? "/admin" : "/dashboard");
     } catch (err: any) {
       console.error(err);
-      setError(err?.message || "Something went wrong.");
+      const errorMessage = err?.response?.data?.message || err.message || "Something went wrong.";
+      
+      if (errorMessage.toLowerCase().includes("number already exists")) {
+        setError("This mobile number is already registered. Try logging in instead.");
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
+  
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 animate-fade-in">

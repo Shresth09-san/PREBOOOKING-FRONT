@@ -21,7 +21,7 @@ export default function EmailLogin() {
   };
 
   const {user}=useAuth()
-  console.log(user)
+
 // In EmailLogin.js
 const handleLogin = async () => {
   if (!email) {

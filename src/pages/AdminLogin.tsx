@@ -17,7 +17,6 @@ const AdminLogin = () => {
     try {
       const isValid = await adminLogin(adminId, password);
       if (isValid) {
-        console.log("Login successful, navigating to /admin");
         navigate("/admin", { replace: true });
       } else {
         setError("Invalid admin credentials!");

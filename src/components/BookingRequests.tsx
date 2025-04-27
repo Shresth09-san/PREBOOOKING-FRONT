@@ -26,7 +26,7 @@ interface Booking {
   date: string;
   time: string;
   address: string;
-  status: 'pending' | 'completed' | 'declined';
+  status: 'pending' | 'completed' | 'declined' | 'canceled';
   providerDetails?: {
     id: string;
     name: string;
@@ -56,8 +56,8 @@ const BookingRequests = () => {
       setLoading(true);
       try {
         const data = await fetchProviderBookings();
-        console.log("Provider bookings:", data);
         setBookings(data);
+        console.log(data,'data')
         setError(null);
       } catch (err) {
         console.error("Failed to fetch bookings:", err);
@@ -80,7 +80,7 @@ const BookingRequests = () => {
     try {
       // Using axios to send booking data to backend
       const response = await axios.put(`${API_BASE_URL}/api/bookings/${id}`, updateData);
-      console.log('Booking updated successfully:', response.data);
+  
       return true;
     } catch (error) {
       console.error('Error updating booking:', error);
@@ -164,7 +164,7 @@ const BookingRequests = () => {
         'pending': 'updated',
         'declined': 'declined',
         'completed': 'marked as completed',
-        'canceled': 'canceled',  // Add 'cancelled' status here
+        'canceled': 'canceled',
       };
   
       toast({

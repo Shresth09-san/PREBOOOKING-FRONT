@@ -2,7 +2,13 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
 import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
@@ -19,23 +25,26 @@ import { useAuth } from "@/context/AuthContext";
 import AdminLogin from "./pages/AdminLogin";
 import EmailLogin from "./components/SupaBase/EmailLogin";
 import Loader from "@/components/ui/loader";
+import Payment from "./components/Payment/Payment";
+import StripePaymentStatus from "./components/Payment/StripePaymentStatus";
 
 const queryClient = new QueryClient();
 
 // Protected route component
 const ProtectedAdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isAdmin, loading } = useAuth();
-  
-  console.log("Auth status:", { isAuthenticated, isAdmin, loading });
 
-  if (loading) return (
-    <div className="h-screen flex items-center justify-center">
-      <Loader />
-    </div>
-  );
+
+
+  if (loading)
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <Loader />
+      </div>
+    );
 
   if (!isAuthenticated || !isAdmin) {
-    console.log("Redirecting to /admin-login");
+    
     return <Navigate to="/admin-login" replace />;
   }
 
@@ -81,15 +90,17 @@ const AppContent = () => {
           <Route path="/services" element={<Services />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/EmailLogin" element={<EmailLogin />} /> 
+          <Route path="/EmailLogin" element={<EmailLogin />} />
           <Route path="/admin-login" element={<AdminLogin />} />
-          <Route 
-            path="/admin" 
+          <Route path="/Payment" element={<Payment />} />
+          <Route path="/payment-status" element={<StripePaymentStatus />} />
+          <Route
+            path="/admin"
             element={
               <ProtectedAdminRoute>
                 <AdminDashboard />
               </ProtectedAdminRoute>
-            } 
+            }
           />
           <Route path="*" element={<NotFound />} />
         </Routes>
@@ -100,17 +111,18 @@ const AppContent = () => {
 
 // Main App component
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AuthProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+  <BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <AuthProvider>
+          <Toaster />
+          <Sonner />
+
           <AppContent />
-        </BrowserRouter>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
+        </AuthProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </BrowserRouter>
 );
 
 export default App;

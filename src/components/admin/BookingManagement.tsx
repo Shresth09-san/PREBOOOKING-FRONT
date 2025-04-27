@@ -43,11 +43,13 @@ const BookingManagement = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const { getTotalBookings, BookingsDetails } = useAuth();
+ 
 
   useEffect(() => {
     const fetchBookings = async () => {
       try {
         await getTotalBookings();
+        
         setLoading(false);
       } catch (error) {
         console.error('Error fetching bookings:', error);

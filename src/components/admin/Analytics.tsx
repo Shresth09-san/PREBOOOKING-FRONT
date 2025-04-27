@@ -1,49 +1,72 @@
-import { useState, useEffect } from 'react';
-import { adminApi } from '@/lib/admin-api';
-import { AnalyticsData } from '@/lib/models';
-import { useAuth } from '@/context/AuthContext';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+import { useState, useEffect } from "react";
+import { adminApi } from "@/lib/admin-api";
+import { AnalyticsData } from "@/lib/models";
+import { useAuth } from "@/context/AuthContext";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  Tooltip, 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
   ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
-  Legend
-} from 'recharts';
-import { toast } from '@/components/ui/use-toast';
+  Legend,
+} from "recharts";
+import { toast } from "@/components/ui/use-toast";
 import {
   Users,
   UserCheck,
   FileText,
   CheckSquare,
   HourglassIcon,
-} from 'lucide-react';
+} from "lucide-react";
 
-const COLORS = ['#F7C948', '#FD9B46', '#FC7F22', '#E25822', '#C03F19'];
+const COLORS = ["#F7C948", "#FD9B46", "#FC7F22", "#E25822", "#C03F19"];
 
 const Analytics = () => {
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
 
-  const {GetUserCounts,userCounts, getTotalBookings,Bookings,completedBookings,pendingBookings}=useAuth()
+  const {
+    GetUserCounts,
+    userCounts,
+    getTotalBookings,
+    Bookings,
+    completedBookings,
+    pendingBookings,
+  } = useAuth();
 
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        await GetUserCounts();
+        await getTotalBookings();
+      } catch (error) {
+        console.error("Error loading data:", error);
+        toast({
+          title: "Error",
+          description:
+            "Failed to load user and booking data. Please try again.",
+          variant: "destructive",
+        });
+      }
+    };
 
-  useEffect(()=>{
-    GetUserCounts()
-    getTotalBookings()
+    loadData();
    
-  },[])
+  }, []);
+
 
 
   useEffect(() => {
@@ -52,7 +75,7 @@ const Analytics = () => {
         const data = await adminApi.getAnalytics();
         setAnalyticsData(data);
       } catch (error) {
-        console.error('Error fetching analytics:', error);
+        console.error("Error fetching analytics:", error);
         toast({
           title: "Error",
           description: "Failed to load analytics data. Please try again.",
@@ -85,7 +108,7 @@ const Analytics = () => {
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold mb-6">Platform Analytics</h2>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -93,29 +116,37 @@ const Analytics = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{userCounts.homeownerCount}</div>
+            <div className="text-2xl font-bold">
+              {userCounts.homeownerCount}
+            </div>
             <p className="text-xs text-muted-foreground">
               Homeowners using the platform
             </p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Service Providers</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Service Providers
+            </CardTitle>
             <UserCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{userCounts.serviceProviderCount}</div>
+            <div className="text-2xl font-bold">
+              {userCounts.serviceProviderCount}
+            </div>
             <p className="text-xs text-muted-foreground">
               Professionals offering services
             </p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Bookings
+            </CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -125,10 +156,12 @@ const Analytics = () => {
             </p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completed Jobs</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Completed Jobs
+            </CardTitle>
             <CheckSquare className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -139,7 +172,7 @@ const Analytics = () => {
           </CardContent>
         </Card>
       </div>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
         <Card className="col-span-1">
           <CardHeader>
@@ -151,11 +184,11 @@ const Analytics = () => {
               <BarChart data={analyticsData.bookingTrends}>
                 <XAxis dataKey="date" />
                 <YAxis />
-                <Tooltip 
-                  formatter={(value) => [`${value} bookings`, 'Count']}
+                <Tooltip
+                  formatter={(value) => [`${value} bookings`, "Count"]}
                   contentStyle={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                    border: '1px solid #e2e8f0'
+                    backgroundColor: "rgba(255, 255, 255, 0.9)",
+                    border: "1px solid #e2e8f0",
                   }}
                 />
                 <Bar dataKey="count" fill="#F7C948" />
@@ -163,7 +196,7 @@ const Analytics = () => {
             </ResponsiveContainer>
           </CardContent>
         </Card>
-        
+
         <Card className="col-span-1">
           <CardHeader>
             <CardTitle>Top Services</CardTitle>
@@ -185,14 +218,20 @@ const Analytics = () => {
                   labelLine={false}
                 >
                   {analyticsData.topServices.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
                   ))}
                 </Pie>
-                <Tooltip 
-                  formatter={(value, name, props) => [`${value} bookings`, props.payload.service]}
+                <Tooltip
+                  formatter={(value, name, props) => [
+                    `${value} bookings`,
+                    props.payload.service,
+                  ]}
                   contentStyle={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                    border: '1px solid #e2e8f0'
+                    backgroundColor: "rgba(255, 255, 255, 0.9)",
+                    border: "1px solid #e2e8f0",
                   }}
                 />
                 <Legend />
@@ -201,7 +240,7 @@ const Analytics = () => {
           </CardContent>
         </Card>
       </div>
-      
+
       <Card>
         <CardHeader>
           <CardTitle>Pending Requests</CardTitle>
@@ -211,7 +250,9 @@ const Analytics = () => {
           <div className="flex items-center space-x-2">
             <HourglassIcon className="h-5 w-5 text-yellow-500" />
             <span className="text-lg font-medium">{pendingBookings}</span>
-            <span className="text-muted-foreground text-sm">awaiting provider confirmation</span>
+            <span className="text-muted-foreground text-sm">
+              awaiting provider confirmation
+            </span>
           </div>
         </CardContent>
       </Card>

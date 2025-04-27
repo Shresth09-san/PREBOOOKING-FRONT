@@ -33,7 +33,7 @@ const BookingHistory = () => {
       try {
         const data = await fetchBookings();
         setBookings(data);
-        console.log(bookings);
+      
         setError(null);
       } catch (err) {
         console.error("Failed to fetch bookings:", err);

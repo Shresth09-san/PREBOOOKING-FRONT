@@ -5,10 +5,10 @@ import {
   useEffect,
   ReactNode,
   useMemo,
-  useCallback
+  useCallback,
 } from "react";
 import axios from "axios";
-import { set } from "gsap";
+import { useNavigate } from "react-router-dom";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 interface User {
@@ -27,29 +27,55 @@ interface AuthContextProps {
   isAdmin: boolean;
   login: (mobnumber: string, password: string, role: string) => Promise<User>;
   adminLogin: (adminId: string, password: string) => Promise<boolean>;
-  GetUserCounts: () => Promise<void>; // ✅ already there
+  GetUserCounts: () => Promise<void>;
   userCounts: {
     homeownerCount: number;
     serviceProviderCount: number;
     adminCount: number;
     totalUsers: number;
-  }; 
+  };
+
   setBookings: (bookings: any) => void;
   Bookings: any;
+  completedBookings: any;
+  setcompletedBookings: (completedBookings: any) => void;
+  pendingBookings: any;
+  setpendingBookings: (pendingBookings: any) => void;
+  BookingsDetails: any;
+  setBookingsDetails: (BookingDetails: any) => void;
   fetchBookings: () => Promise<any[]>;
-  fetchProviderBookings:()=> Promise<any[]>
-  getTotalBookings:()=>Promise<any[]>
-  completedBookings:any,
-  pendingBookings:any,
-  getUserdetails:()=>Promise<any>
-  sethomeownerdetails:(homeownerDetails:any)=>void
-  setproviderdetails:(providerDetails:any)=>void
-  homeownerdetails:any
-  providerdetails:any,
-  setallusers:(allUsers:any)=>void
-  allusers:any,
-  setBookingDetails:(bookingDetails:any)=>void
-  BookingsDetails:any
+  fetchProviderBookings: () => Promise<any[]>;
+  getTotalBookings: () => Promise<any[]>;
+
+  getUserdetails: () => Promise<any>;
+  sethomeownerdetails: (homeownerDetails: any) => void;
+  setproviderdetails: (providerDetails: any) => void;
+  homeownerdetails: any;
+  providerdetails: any;
+  setallusers: (allUsers: any) => void;
+  userid?: string;
+  allusers: any;
+  setBookingDetails: (bookingDetails: any) => void;
+
+  servicesList: any;
+  setServiceList: any;
+
+  getServicePrice: () => Promise<any>;
+  selectedService: string | null;
+
+  setSelectedService: any;
+  price: any;
+  setPrice: (price: any) => void;
+
+  date: Date | null;
+  setDate: (date: Date | null) => void;
+  timeSlot: string | null;
+  setTimeSlot: (timeSlot: string | null) => void;
+  address: string | null;
+  setAddress: (address: string | null) => void;
+  details: string | null;
+  setDetails: (details: string | null) => void;
+  checkPendingbooking: () => void;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -57,7 +83,7 @@ const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-
+  const navigate = useNavigate();
   const [userCounts, setUserCounts] = useState({
     homeownerCount: 0,
     serviceProviderCount: 0,
@@ -65,92 +91,79 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     totalUsers: 0,
   });
 
-  const [Bookings,setBookings]=useState()
-  const [completedBookings,setCompletedBookings]=useState()
-  const [pendingBookings,setpendingBookings]=useState()
-  const [BookingsDetails,setBookingDetails]=useState()
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-  const [homeownerdetails,sethomeownerdetails]=useState()
-  const [providerdetails,setproviderdetails]=useState()
-  const [allusers,setallusers]=useState()
+  const [Bookings, setBookings] = useState();
+  const [completedBookings, setCompletedBookings] = useState();
+  const [pendingBookings, setpendingBookings] = useState();
+  const [BookingsDetails, setBookingDetails] = useState();
+
+  const [date, setDate] = useState<Date | null>(null);
+  const [timeSlot, setTimeSlot] = useState<string | null>(null);
+  const [address, setAddress] = useState<string | null>(null);
+  const [details, setDetails] = useState<string | null>(null);
+
+  const [homeownerdetails, sethomeownerdetails] = useState();
+  const [providerdetails, setproviderdetails] = useState();
+  const [allusers, setallusers] = useState();
+
+  const [servicesList, setServiceList] = useState([]);
+  const [selectedService, setSelectedService] = useState<string | null>(null);
+  const [price, setPrice] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUser = async () => {
       setLoading(true);
       const userToken = localStorage.getItem("doit-token");
       const adminToken = localStorage.getItem("admin-token");
-  
-      // If no tokens at all, exit early
+
       if (!userToken && !adminToken) {
         setLoading(false);
         return;
       }
-      
-      // Try admin authentication first if token exists
-      if (adminToken) {
-        try {
-          const response = await axios.get(`${API_BASE_URL}/api/user-counts/admin`, {
-            headers: {
-              Authorization: `Bearer ${adminToken}`
-            }
-          });
-          
-          // Set admin user data
-          setUser(response.data);
-          setLoading(false);
-          return; // Exit early as we've authenticated as admin
-        } catch (error) {
-          console.error("Error fetching admin user:", error.response?.data || error.message);
-          const status = error.response?.status;
-          
-          if (status === 401 || status === 403) {
-            localStorage.removeItem("admin-token");
-            // Don't set user to null yet - we'll try the user token next
-          } else {
-            console.warn("Server/network error, admin token preserved.");
-          }
-        }
-      }
-      
-      // Only try user authentication if admin auth failed or no admin token
-      if (userToken) {
-        try {
-          const response = await axios.get(`${API_BASE_URL}/api/auth/user`, {
-            headers: {
-              Authorization: `Bearer ${userToken}`
-            }
-          });
-          
-          setUser(response.data);
-        } catch (error) {
-          console.error("Error fetching user:", error.response?.data || error.message);
-          const status = error.response?.status;
-          
-          if (status === 401 || status === 403) {
-            localStorage.removeItem("doit-token");
-            setUser(null);
-          } else {
-            console.warn("Server/network error, token preserved.");
-          }
-        }
-      } else if (!adminToken) {
-        // If we got here with no valid tokens, clear user state
+
+      try {
+        const token = userToken || adminToken;
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+        const response = await axios.get(`${API_BASE_URL}/api/auth/user`, {
+          headers,
+        });
+        setUser(response.data);
+      } catch (error) {
+        console.error("Error fetching user:", error);
         setUser(null);
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
     };
-    
+
     fetchUser();
   }, []);
 
-  const logout = () => {
-    if (localStorage.getItem("doit-token")) {
-      localStorage.removeItem("doit-token");
-      setUser(null);
-    } else if (localStorage.getItem("admin-token")) {
-      localStorage.removeItem("admin-token");
-      setUser(null);
+  const logout = async () => {
+    try {
+      const token =
+        localStorage.getItem("doit-token") ||
+        localStorage.getItem("admin-token");
+
+      if (token) {
+        localStorage.removeItem("doit-token");
+        localStorage.removeItem("admin-token");
+
+        await axios.post(
+          `${API_BASE_URL}/api/auth/logout`,
+          {},
+          {
+            withCredentials: true,
+          }
+        );
+
+        setUser(null);
+        navigate("/login");
+      }
+    } catch (err) {
+      console.error("Logout error: ", err);
     }
   };
 
@@ -159,7 +172,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mobnumber, password, role }), // 👈 include role
+        credentials: "include",
+        body: JSON.stringify({ mobnumber, password, role }),
       });
 
       if (!response.ok) {
@@ -168,9 +182,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       const { token, user } = await response.json();
-   
       localStorage.setItem("doit-token", token);
-      setUser(user); // Assume setUser updates your React app's user state
+      setUser(user);
       return user;
     } catch (error) {
       console.error("Login failed:", error);
@@ -184,13 +197,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ adminId, password }),
-        credentials: "include",
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem("admin-token", data.token); // Store admin token
+        localStorage.setItem("admin-token", data.token);
         setUser({
           name: data.user.name,
           email: data.user.email,
@@ -209,19 +221,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
- 
   const fetchBookings = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/bookings/getbookingdata`, {
-        params: { userId: user?.userid }
-     
-      });
-  
-      if (response.data && response.data.success && Array.isArray(response.data.data)) {
+      const response = await axios.get(
+        `${API_BASE_URL}/api/bookings/getbookingdata`,
+        {
+          params: { userId: user?.userid },
+        }
+      );
+
+      if (response.data?.success && Array.isArray(response.data.data)) {
         return response.data.data;
       }
-  
-      console.log("API response structure:", response.data);
+
       return [];
     } catch (error) {
       console.error("Error fetching bookings", error);
@@ -231,16 +243,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchProviderBookings = async () => {
     try {
-      // Try with provider-specific endpoint
-      const response = await axios.get(`${API_BASE_URL}/api/bookings/getProviderbookings`, {
-        params: { providerId: user?.userid }
-      });
-      
-      if (response.data && response.data.success && Array.isArray(response.data.data)) {
+      const response = await axios.get(
+        `${API_BASE_URL}/api/bookings/getProviderbookings`,
+        {
+          params: { providerId: user?.userid },
+        }
+      );
+      console.log(response.data)
+
+      if (response.data?.success && Array.isArray(response.data.data)) {
+       
         return response.data.data;
       }
-      
-      console.log("Provider API response structure:", response.data);
+
       return [];
     } catch (error) {
       console.error("Error fetching provider bookings", error);
@@ -253,56 +268,81 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const response = await axios.get(`${API_BASE_URL}/api/user-counts/data`);
       const data = response.data;
       setUserCounts(data);
-      console.log(data)
     } catch (errr) {
       console.error("Error fetching user counts:", errr);
     }
   };
 
-
-  const getTotalBookings= useCallback (async()=>{
-    try{
-      const response = await axios.get(`${API_BASE_URL}/api/user-counts/TotalBookings`);
-      if (response.data && response.data.success) {
-        return response.data.totalBookings;
+  const getTotalBookings = useCallback(async () => {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/api/user-counts/TotalBookings`
+      );
+      
+      if (response.data) {
+        // Update the context state with the data
+        setBookings(response.data.totalBookings || 0);
+        setCompletedBookings(response.data.completedBookings || 0);
+        setpendingBookings(response.data.pendingBookings || 0);
+        setBookingDetails(response.data.allBookings || []);
+        
+        // Return the allBookings array to match the Promise<any[]> return type
+        return response.data.allBookings || [];
       }
-      setBookings(response.data.totalBookings)
-      setCompletedBookings(response.data.completedBookings)
-      setpendingBookings(response.data.pendingBookings)
-      setBookingDetails(response.data.allBookings)
-
-      console.log("Total bookings API response structure:", response.data);
-      return 0;
-    }
-    catch(error){
+      
+      return [];
+    } catch (error) {
       console.error("Error fetching total bookings", error);
-      return 0;
+      return []; // Return empty array on error to match Promise<any[]>
     }
-  },[API_BASE_URL])
+  }, [API_BASE_URL]);
 
   const getUserdetails = useCallback(async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/user-counts/user-details`);
-      
+      const response = await axios.get(
+        `${API_BASE_URL}/api/user-counts/user-details`
+      );
       if (response.data) {
-        const homeowners = response.data.homeowners;
-        const serviceProviders = response.data.serviceProviders;
-        const allusers = response.data.allUsers;
-        
-        sethomeownerdetails(homeowners);
-        setproviderdetails(serviceProviders);
-        setallusers(allusers);
-        return { homeowners, serviceProviders };
+        sethomeownerdetails(response.data.homeowners);
+        setproviderdetails(response.data.serviceProviders);
+        setallusers(response.data.allUsers);
+        return {
+          homeowners: response.data.homeowners,
+          serviceProviders: response.data.serviceProviders,
+        };
       }
-      
-      console.log("Unexpected response:", response.data);
+
       return null;
     } catch (error) {
       console.error("Error fetching user details", error);
       return null;
     }
-  }, [API_BASE_URL]); // Only depends on API_BASE_URL
+  }, [API_BASE_URL]);
+
+  const getServicePrice = async () => {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/api/price/serviceprice`
+      );
+      setServiceList(response.data);
+    } catch (err) {
+      console.error("Error fetching user details", err);
+      return null;
+    }
+  };
+
   
+  function checkPendingbooking() {
+    if (!localStorage.getItem("pending-booking")) {
+      setDate(null);
+      setAddress("");
+      setDetails("");
+      setPrice("");
+      setTimeSlot("");
+      setSelectedService("");
+    }
+  }
+
   const isAuthenticated = useMemo(() => !!user, [user]);
   const isAdmin = useMemo(() => user?.role === "admin", [user]);
 
@@ -330,7 +370,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         getUserdetails,
         homeownerdetails,
         providerdetails,
-        allusers
+        allusers,
+        getServicePrice,
+        servicesList,
+        setServiceList,
+        sethomeownerdetails,
+        setproviderdetails,
+        setallusers,
+        setBookingDetails,
+        selectedService,
+        setSelectedService,
+        price,
+        setPrice,
+        date,
+        setDate,
+        timeSlot,
+        setTimeSlot,
+        address,
+        setAddress,
+        details,
+        setDetails,
+        checkPendingbooking,
       }}
     >
       {children}
@@ -342,4 +402,4 @@ export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
-}
+};

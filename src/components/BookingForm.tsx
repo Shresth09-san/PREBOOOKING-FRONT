@@ -45,28 +45,6 @@ const AVAILABLE_SERVICES = [
   "IT & Technical Support",
 ];
 
-// Service price mapping
-const SERVICE_PRICES = {
-  'Plumbing Services': 75,
-  'Electrical Services': 85,
-  'Carpentry Services': 80,
-  'Home Appliance Repair': 70,
-  'Painting Services': 90,
-  'Pest Control': 65,
-  'Gardening & Landscaping': 60,
-  'Home Renovation': 150,
-  'AC & HVAC Services': 100,
-  'Home Security': 120,
-  'Laundry Services': 50,
-  'Moving & Relocation': 200,
-  'Wellness & Lifestyle': 75,
-  'Vehicle Services': 90,
-  'Smart Home': 110,
-  'Event Support': 150,
-  'Handyman Services': 65,
-  'IT & Technical Support': 80
-};
-
 const TIME_SLOTS = [
   "09:00 AM",
   "10:00 AM",
@@ -89,6 +67,8 @@ const BookingForm = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const Navigate = useNavigate();
 
+ 
+
   const {
     user,
     servicesList,
@@ -106,6 +86,15 @@ const BookingForm = () => {
     details,
     setDetails,
   } = useAuth();
+
+  useEffect(() => {
+    if (!selectedService && servicesList.length > 0) {
+      setSelectedService("select the service"); // Default to the first service
+    }
+    if (!timeSlot) {
+      setTimeSlot("Select Time slot"); // Default to the first time slot
+    }
+  }, [selectedService, timeSlot, servicesList]);
 
   useEffect(() => {
     if (servicesList.length === 0) {
@@ -149,7 +138,7 @@ const BookingForm = () => {
         <div className="space-y-4">
           <div>
             <Label htmlFor="service">Service Type*</Label>
-            <Select value={selectedService} onValueChange={handleServiceChange}>
+            <Select value={selectedService} onValueChange={setSelectedService}>
               <SelectTrigger id="service" className="w-full">
                 <SelectValue placeholder="Select a service" />
               </SelectTrigger>
@@ -167,13 +156,6 @@ const BookingForm = () => {
               </p>
             )}
           </div>
-          
-          {servicePrice !== null && (
-            <div className="bg-muted p-3 rounded-md">
-              <Label>Fixed Price</Label>
-              <p className="text-lg font-semibold">${servicePrice.toFixed(2)}</p>
-            </div>
-          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

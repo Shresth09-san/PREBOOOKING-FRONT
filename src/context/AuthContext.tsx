@@ -38,11 +38,11 @@ interface AuthContextProps {
   setBookings: (bookings: any) => void;
   Bookings: any;
   completedBookings: any;
-  setcompletedBookings: (completedBookings: any) => void;
+  setCompletedBookings: (completedBookings: any) => void;
   pendingBookings: any;
   setpendingBookings: (pendingBookings: any) => void;
   BookingsDetails: any;
-  setBookingsDetails: (BookingDetails: any) => void;
+  setBookingDetails: (BookingDetails: any) => void;
   fetchBookings: () => Promise<any[]>;
   fetchProviderBookings: () => Promise<any[]>;
   getTotalBookings: () => Promise<any[]>;
@@ -55,8 +55,8 @@ interface AuthContextProps {
   setallusers: (allUsers: any) => void;
   userid?: string;
   allusers: any;
-  setBookingDetails: (bookingDetails: any) => void;
 
+  
   servicesList: any;
   setServiceList: any;
 
@@ -98,6 +98,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [pendingBookings, setpendingBookings] = useState();
   const [BookingsDetails, setBookingDetails] = useState();
 
+  
   const [date, setDate] = useState<Date | null>(null);
   const [timeSlot, setTimeSlot] = useState<string | null>(null);
   const [address, setAddress] = useState<string | null>(null);
@@ -367,6 +368,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         completedBookings,
         pendingBookings,
         BookingsDetails,
+        setCompletedBookings, 
+        setpendingBookings,  
+        setBookingDetails,   
         getUserdetails,
         homeownerdetails,
         providerdetails,
@@ -377,7 +381,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         sethomeownerdetails,
         setproviderdetails,
         setallusers,
-        setBookingDetails,
         selectedService,
         setSelectedService,
         price,

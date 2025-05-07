@@ -57,7 +57,7 @@ const BookingRequests = () => {
       try {
         const data = await fetchProviderBookings();
         setBookings(data);
-        console.log(data,'data')
+      
         setError(null);
       } catch (err) {
         console.error("Failed to fetch bookings:", err);
@@ -116,6 +116,7 @@ const BookingRequests = () => {
     const updateData = {
       ...bookingToAccept,
       providerDetails: providerDetails,
+      
       status:'pending'
     };
     
